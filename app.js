@@ -1,4 +1,4 @@
-const STORAGE_KEY = "forge_state_v9"; // Bumped version
+const STORAGE_KEY = "forge_save_data";
 
 const defaultState = {
   math: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
