@@ -408,13 +408,19 @@ function startCombatTurn(action) {
     });
     optsDiv.classList.remove("hidden");
   } 
-  else if (action === "cast") {
+    else if (action === "cast") {
     title.textContent = "Cast Spell! (Math)";
     const a = rand(5, 20), b = rand(2, 10);
     qText.textContent = `${a} × ${b} = ?`;
     const correct = a * b;
     input.style.display = "block"; input.value = ""; submitBtn.style.display = "block";
-    submitBtn.onclick = () => resolveCombat(parseInt(input.value) === correct);
+    
+    // CHANGE THIS LINE:
+    submitBtn.onclick = () => {
+      submitBtn.disabled = true; // Lock the button
+      input.disabled = true;     // Lock the input
+      resolveCombat(parseInt(input.value) === correct);
+    };
   }
 }
 
@@ -563,24 +569,41 @@ window.onload = function() {
     newMathQuestion();
   };
 
-  document.getElementById("mathSubmit").onclick = function() {
+   document.getElementById("mathSubmit").onclick = function() {
     const input = document.getElementById("mathAnswer");
     const val = parseInt(input.value, 10);
     if (isNaN(val) || !currentMath) return;
     
+    // --- LOCK THE INPUTS TO PREVENT SPAMMING ---
+    const btn = document.getElementById("mathSubmit");
+    btn.disabled = true;
+    input.disabled = true;
+
     const fb = document.getElementById("mathFeedback");
     if (val === currentMath.answer) {
       fb.textContent = "✅ Correct!"; fb.className = "feedback good";
       handleCorrect("math", "intellect");
       state.math.streak++; state.math.xp++; state.math.wrongStreak = 0;
-      if (state.math.xp >= 10) { state.math.xp = 0; state.math.level++; }
+      
+      if (state.math.xp >= 10) { 
+        state.math.xp = 0; 
+        state.math.level++; 
+        setTimeout(() => alert(`🎉 Math Level ${state.math.level}!`), 300);
+      }
     } else {
       fb.textContent = `❌ Answer was ${currentMath.answer}`; fb.className = "feedback bad";
       handleWrong("math", "intellect");
       state.math.streak = 0; state.math.wrongStreak++;
     }
+    
     saveState(); updateMathUI();
-    setTimeout(newMathQuestion, 3800);
+    
+    // --- UNLOCK AND LOAD NEXT QUESTION AFTER DELAY ---
+    setTimeout(() => {
+      btn.disabled = false;
+      input.disabled = false;
+      newMathQuestion();
+    }, 3800);
   };
 
   document.getElementById("mathAnswer").onkeydown = function(e) {
