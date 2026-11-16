@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>The Forge</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+  <!-- TUTORIAL MODAL (First Launch) -->
+  <div id="tutorialModal" class="modal">
+    <div class="modal-content tutorial">
+      <h1>⚔️ WELCOME TO THE FORGE ⚔️</h1>
+      <p>You are a hero in training. Your power is stored in three dice:</p>
+      <ul style="list-style:none; padding:0; font-size:16px; line-height:1.8;">
+        <li>💪 <b>STRENGTH</b> — trained by German</li>
+        <li>🎯 <b>DEXTERITY</b> — trained by German</li>
+        <li>🧠 <b>INTELLECT</b> — trained by Math</li>
+      </ul>
+      <p style="margin-top:16px;"><b>The SMALLER the die, the STRONGER you are.</b><br>Start: d20 (weak) → Goal: d4 (master)</p>
+      <p>Answer correctly to roll and upgrade. Answer wrong and your die grows.</p>
+      <div style="margin: 16px 0;">
+        <label style="font-size:14px; font-weight:bold;">Name your Hero:</label><br>
+        <input type="text" id="heroNameInput" maxlength="15" style="text-align:center; margin-top:8px; font-size:18px;" placeholder="Sir Bumble">
+      </div>
+      <button id="startTutorialBtn" style="background:#58cc02; color:white; border:none;">START TRAINING</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <select id="modeSelect">
+      <option value="math">🧮 Math</option>
+      <option value="german">🇩🇪 German</option>
+    </select>
+    
+    <div style="display:flex; gap:8px;">
+      <button id="dungeonBtn" title="Dungeon">⚔️</button>
+      <button id="settingsBtn" title="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= MATH MODE ================= -->
+    <section id="mathPanel" class="panel active">
+      <div class="hero-container">
+        <div class="pixel-hero" id="mathHeroSprite"></div>
+        <div class="hero-dice">
+          <span>💪 <b id="mathHeroStr">1</b></span>
+          <span>🎯 <b id="mathHeroDex">1</b></span>
+          <span>🧠 <b id="mathHeroInt">1</b></span>
+        </div>
+        <div class="dice-roll-text" id="mathRollText"></div>
+      </div>
+
+      <div class="stats-bar">
+        <span>Level <b id="mathLevel">1</b></span>
+        <span>🔥 <b id="mathStreak">0</b></span>
+        <span>XP <b id="mathXp">0</b>/10</span>
+      </div>
+      <div class="xp-bar"><div id="mathXpFill" class="xp-fill"></div></div>
+
+      <div id="mathQuestion" class="question">Loading...</div>
+      <input id="mathAnswer" type="number" inputmode="numeric" placeholder="Your answer" autocomplete="off">
+      <button id="mathSubmit">Check</button>
+      <div id="mathFeedback" class="feedback"></div>
+    </section>
+
+    <!-- ================= GERMAN MODE ================= -->
+    <section id="germanPanel" class="panel">
+      <div class="hero-container">
+        <div class="pixel-hero" id="germanHeroSprite"></div>
+        <div class="stat-selector">
+          <label><input type="radio" name="statSelect" value="strength" checked> 💪 STR</label>
+          <label><input type="radio" name="statSelect" value="dexterity"> 🎯 DEX</label>
+          <label><input type="radio" name="statSelect" value="intellect"> 🧠 INT</label>
+        </div>
+        <div class="hero-dice">
+          <span>💪 <b id="germanHeroStr">d20</b></span>
+          <span>🎯 <b id="germanHeroDex">d20</b></span>
+          <span>🧠 <b id="germanHeroInt">d20</b></span>
+        </div>
+        <div class="dice-roll-text" id="germanRollText"></div>
+      </div>
+
+      <div class="stats-bar">
+        <span>Level <b id="germanLevel">1</b></span>
+        <span>🔥 <b id="germanStreak">0</b></span>
+        <span>XP <b id="germanXp">0</b>/10</span>
+      </div>
+      <div class="xp-bar"><div id="germanXpFill" class="xp-fill"></div></div>
+
+      <div id="germanPrompt" class="question">Loading...</div>
+      <div id="germanOptions" class="options"></div>
+      <div id="germanFeedback" class="feedback"></div>
+    </section>
+
+    <!-- ================= DUNGEON MODE ================= -->
+    <section id="dungeonPanel" class="panel">
+      
+            <!-- Locked State -->
+      <div id="dungeonLocked" style="text-align:center; padding: 40px 20px;">
+        <h2 style="margin-bottom: 16px;">⚔️ THE DUNGEON IS LOCKED</h2>
+        <p style="margin-bottom: 24px; font-size: 16px; line-height: 1.6;">
+          To enter, you need:<br><br>
+          <span id="reqMath">Math Level 2 (you have: 1)</span><br>
+          <span id="reqGerman">German Level 2 (you have: 1)</span><br>
+          <span id="reqStats">All stats at d12 or better</span>
+        </p>
+        <p style="font-weight: bold; color: #888; margin-bottom: 24px;">Keep training! Come back when you're ready.</p>
+        
+        <!-- NEW BUTTON -->
+        <button id="returnToTrainingBtn" style="background:#58cc02; color:white; border:none; padding:12px 24px; font-size:16px; border-radius:8px;">RETURN TO TRAINING</button>
+      </div>
+
+      <!-- Combat Arena (Hidden until unlocked) -->
+      <div id="dungeonArena" class="hidden">
+        <div class="arena">
+          <div class="fighter">
+            <div class="pixel-hero" id="battleHero"></div>
+            <div class="health-bar"><div id="heroHpFill" class="hp-fill" style="width:100%"></div></div>
+            <div id="heroHpText" style="font-size:12px; font-weight:bold;">50/50</div>
+          </div>
+          
+          <div class="vs">VS</div>
+          
+          <div class="fighter">
+            <div class="pixel-enemy" id="battleEnemy"></div>
+            <div class="health-bar"><div id="enemyHpFill" class="hp-fill enemy-hp" style="width:100%"></div></div>
+            <div id="enemyHpText" style="font-size:12px; font-weight:bold;">20/20</div>
+          </div>
+        </div>
+
+        <div id="combatLog" class="combat-log">
+          A Giant Rat blocks your path!
+        </div>
+
+        <div class="combat-actions">
+          <button class="action-btn" onclick="startCombatTurn('attack')">⚔️ Attack (STR)</button>
+          <button class="action-btn" onclick="startCombatTurn('defend')">🛡️ Defend (DEX)</button>
+          <button class="action-btn" onclick="startCombatTurn('cast')">✨ Cast (INT)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- COMBAT QUESTION POPUP -->
+  <div id="combatModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="combatModalTitle" style="margin-bottom: 16px;">Answer to Attack!</h3>
+      <div id="combatQuestionText" class="question" style="font-size:20px; padding:16px; margin-bottom:16px;">Loading...</div>
+      <div id="combatOptions"></div>
+      <input id="combatInput" type="number" placeholder="Answer" style="display:none; margin-bottom:12px;">
+      <button id="combatSubmit" style="display:none; background:#58cc02; color:white;">Submit</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      <label><input type="checkbox" id="discreetToggle"> Discreet mode</label>
+      <label><input type="checkbox" id="soundToggle" checked> Sound effects</label>
+      <button id="howToBtn" style="background:#f0f0f0; color:#333;">How to Play</button>
+      <button id="resetBtn" class="danger">Reset all progress</button>
+      <button id="closeSettings">Close</button>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
