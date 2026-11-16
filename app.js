@@ -1,10 +1,12 @@
-const STORAGE_KEY = "forge_state_v5"; // New save version
+const STORAGE_KEY = "forge_state_v6"; // New save version for final build
 
 const defaultState = {
   math: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
   german: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
   hero: { name: "Sir Bumble", strength: 1, dexterity: 1, intellect: 1 },
   discreet: false,
+  sound: true,
+  vibration: true,
   tutorialSeen: false,
   dungeon: { currentEnemy: 0 }
 };
@@ -33,8 +35,45 @@ function shuffle(arr) {
   return a;
 }
 
+// ============ SOUND & HAPTICS ============
+let audioCtx = null;
+
+function playBeep(type) {
+  if (!state.sound) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    if (type === "success") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
+    } else {
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.15);
+    }
+    
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+  } catch (e) { console.log("Audio blocked by browser"); }
+}
+
+function vibrate(type) {
+  if (!state.vibration || !navigator.vibrate) return;
+  if (type === "success") navigator.vibrate(50);
+  else navigator.vibrate([50, 50, 50]);
+}
+
 // ============ HERO STAT LOGIC ============
-const MAX_STAT = 50; // The real grind
+const MAX_STAT = 50; 
 
 function modifyStat(statKey, amount, mode) {
   const oldVal = state.hero[statKey];
@@ -92,6 +131,8 @@ function showRollText(mode, text) {
 
 function handleCorrect(mode, statKey) {
   const result = modifyStat(statKey, 1, mode);
+  playBeep("success");
+  vibrate("success");
   
   if (result.newVal === MAX_STAT && result.oldVal === MAX_STAT) {
     showRollText(mode, `🏆 ${statKey.toUpperCase()} is already PERFECT (${MAX_STAT})!`);
@@ -110,7 +151,9 @@ function handleCorrect(mode, statKey) {
 }
 
 function handleWrong(mode, statKey) {
-  // Wrong answers only drop your stat if it's above 5, so you don't get stuck at 1
+  playBeep("error");
+  vibrate("error");
+  
   if (state.hero[statKey] <= 5) {
     showRollText(mode, `💥 Wrong! ${statKey.toUpperCase()} is too low to drop further.`);
     highlightStat(mode, statKey, "#ff4b4b");
@@ -282,7 +325,6 @@ function checkDungeonUnlock() {
   const germanLvl = state.german.level;
   const str = state.hero.strength; const dex = state.hero.dexterity; const int = state.hero.intellect;
   
-  // Require Mode Level 2 and Stat Level 5
   const statsOk = str >= 5 && dex >= 5 && int >= 5;
   const unlocked = mathLvl >= 2 && germanLvl >= 2 && statsOk;
 
@@ -303,7 +345,7 @@ function loadEnemy() {
   const enemy = ENEMIES[state.dungeon.currentEnemy] || ENEMIES[ENEMIES.length - 1];
   currentCombat.enemy = enemy;
   currentCombat.enemyHp = enemy.hp;
-  currentCombat.heroHp = 100; // Buffed hero HP since enemies are harder
+  currentCombat.heroHp = 100; 
   
   document.getElementById("battleEnemy").className = "pixel-enemy " + enemy.sprite;
   document.getElementById("enemyHpText").textContent = `${currentCombat.enemyHp}/${enemy.hp}`;
@@ -378,6 +420,9 @@ function resolveCombat(isCorrect) {
   const action = currentCombat.action;
   const enemy = currentCombat.enemy;
   let log = "";
+
+  if (isCorrect) { playBeep("success"); vibrate("success"); }
+  else { playBeep("error"); vibrate("error"); }
 
   if (action === "attack") {
     const statLvl = state.hero.strength;
@@ -471,17 +516,14 @@ window.onload = function() {
     else if (e.target.value === "german") newGermanQuestion();
   };
 
-  // THE DUNGEON TOGGLE FIX
   document.getElementById("dungeonBtn").onclick = function() {
     const dungeonPanel = document.getElementById("dungeonPanel");
     if (dungeonPanel.classList.contains("active")) {
-      // If already in dungeon, kick back to training
       document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
       document.getElementById("mathPanel").classList.add("active");
       document.getElementById("modeSelect").value = "math";
       newMathQuestion();
     } else {
-      // Enter dungeon
       document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
       dungeonPanel.classList.add("active");
       checkDungeonUnlock();
@@ -531,6 +573,7 @@ window.onload = function() {
       location.reload();
     }
   };
+  
   document.getElementById("discreetToggle").checked = state.discreet;
   document.body.classList.toggle("discreet", state.discreet);
   document.getElementById("discreetToggle").onchange = (e) => {
@@ -539,15 +582,25 @@ window.onload = function() {
     saveState();
   };
 
+  document.getElementById("soundToggle").checked = state.sound !== false;
+  document.getElementById("soundToggle").onchange = (e) => {
+    state.sound = e.target.checked;
+    saveState();
+  };
+
+  document.getElementById("vibrationToggle").checked = state.vibration !== false;
+  document.getElementById("vibrationToggle").onchange = (e) => {
+    state.vibration = e.target.checked;
+    saveState();
+  };
+
   updateMathUI(); updateGermanUI(); updateHeroUI("math"); updateHeroUI("german");
   newMathQuestion(); newGermanQuestion();
 };
 
-// Register Service Worker for offline support
+// Register Service Worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js")
-      .then(() => console.log("SW registered"))
-      .catch(err => console.log("SW failed:", err));
+    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW failed:", err));
   });
 }
