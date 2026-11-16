@@ -5,10 +5,13 @@ const FILES = [
   "./style.css",
   "./app.js",
   "./words.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {
+  self.skipWaiting(); // Force the new service worker to take over immediately
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
 });
 
