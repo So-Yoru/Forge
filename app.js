@@ -1,4 +1,4 @@
-const STORAGE_KEY = "forge_state_v6"; // New save version for final build
+const STORAGE_KEY = "forge_state_v7"; // New save version
 
 const defaultState = {
   math: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
@@ -92,6 +92,10 @@ function modifyStat(statKey, amount, mode) {
 }
 
 function updateHeroUI(mode) {
+  // Update the name on both screens
+  document.getElementById("mathHeroName").textContent = state.hero.name;
+  document.getElementById("germanHeroName").textContent = state.hero.name;
+  
   const ids = mode === "math" ? ["mathHeroStr", "mathHeroDex", "mathHeroInt"] : ["germanHeroStr", "germanHeroDex", "germanHeroInt"];
   document.getElementById(ids[0]).textContent = state.hero.strength;
   document.getElementById(ids[1]).textContent = state.hero.dexterity;
@@ -111,7 +115,7 @@ function highlightStat(mode, statKey, color) {
     el.style.color = color;
     el.style.textShadow = `0 0 10px ${color}`;
     setTimeout(() => {
-      el.style.transform = "scale(1)"; el.style.color = "#333"; el.style.textShadow = "none";
+      el.style.transform = "scale(1)"; el.style.color = "#e5e5e5"; el.style.textShadow = "none";
     }, 1500);
   }
 }
@@ -142,7 +146,7 @@ function handleCorrect(mode, statKey) {
   
   if (result.changed) {
     showRollText(mode, `✅ ${statKey.toUpperCase()} increased! ${result.oldVal} → ${result.newVal}`);
-    highlightStat(mode, statKey, "#58cc02");
+    highlightStat(mode, statKey, "#4ade80");
     animateHero(mode, true);
     if (result.newVal === MAX_STAT) {
       setTimeout(() => alert(`🎉 PERFECT ${statKey.toUpperCase()}! You reached the max stat!`), 400);
@@ -156,14 +160,14 @@ function handleWrong(mode, statKey) {
   
   if (state.hero[statKey] <= 5) {
     showRollText(mode, `💥 Wrong! ${statKey.toUpperCase()} is too low to drop further.`);
-    highlightStat(mode, statKey, "#ff4b4b");
+    highlightStat(mode, statKey, "#ef4444");
     animateHero(mode, false);
     return;
   }
   
   const result = modifyStat(statKey, -1, mode);
   showRollText(mode, `💥 Wrong! ${statKey.toUpperCase()} decreased: ${result.oldVal} → ${result.newVal}`);
-  highlightStat(mode, statKey, "#ff4b4b");
+  highlightStat(mode, statKey, "#ef4444");
   animateHero(mode, false);
 }
 
@@ -429,16 +433,16 @@ function resolveCombat(isCorrect) {
     if (isCorrect) {
       const dmg = statLvl * 2;
       currentCombat.enemyHp -= dmg;
-      log = `⚔️ You hit the ${enemy.name} for ${dmg} damage! (STR ${statLvl})`;
+      log = `⚔️ ${state.hero.name} hits the ${enemy.name} for ${dmg} damage! (STR ${statLvl})`;
     } else {
-      log = `⚔️ You missed the ${enemy.name}!`;
+      log = `⚔️ ${state.hero.name} missed the ${enemy.name}!`;
     }
   } 
   else if (action === "defend") {
     if (isCorrect) {
-      log = `🛡️ You successfully dodged the ${enemy.name}'s attack!`;
+      log = `🛡️ ${state.hero.name} successfully dodged the ${enemy.name}'s attack!`;
     } else {
-      log = `🛡️ You failed to dodge!`;
+      log = `🛡️ ${state.hero.name} failed to dodge!`;
     }
   } 
   else if (action === "cast") {
@@ -446,9 +450,9 @@ function resolveCombat(isCorrect) {
     if (isCorrect) {
       const dmg = statLvl * 3;
       currentCombat.enemyHp -= dmg;
-      log = `✨ You cast a spell for ${dmg} damage! (INT ${statLvl})`;
+      log = `✨ ${state.hero.name} cast a spell for ${dmg} damage! (INT ${statLvl})`;
     } else {
-      log = `✨ Your spell fizzled!`;
+      log = `✨ ${state.hero.name}'s spell fizzled!`;
     }
   }
 
@@ -456,26 +460,26 @@ function resolveCombat(isCorrect) {
     if (action !== "defend" || !isCorrect) {
       const enemyDmg = enemy.dmg;
       currentCombat.heroHp -= enemyDmg;
-      log += ` The ${enemy.name} hits you for ${enemyDmg} damage!`;
+      log += ` The ${enemy.name} hits ${state.hero.name} for ${enemyDmg} damage!`;
     } else {
-      log += ` The ${enemy.name} attacks but you dodge!`;
+      log += ` The ${enemy.name} attacks but ${state.hero.name} dodges!`;
     }
   }
 
   if (currentCombat.enemyHp <= 0) {
-    log += ` 🎉 You defeated the ${enemy.name}!`;
+    log += ` 🎉 ${state.hero.name} defeated the ${enemy.name}!`;
     state.dungeon.currentEnemy++;
     saveState();
     setTimeout(() => {
       if (state.dungeon.currentEnemy >= ENEMIES.length) {
-        alert("🏆 YOU BEAT THE GAME! The Dragon is slain!");
+        alert(`🏆 YOU BEAT THE GAME! ${state.hero.name} has slain the Dragon!`);
         state.dungeon.currentEnemy = 0;
         saveState();
       }
       loadEnemy();
     }, 2000);
   } else if (currentCombat.heroHp <= 0) {
-    log += ` 💀 You died! All stats downgrade by 1.`;
+    log += ` 💀 ${state.hero.name} died! All stats downgrade by 1.`;
     ["strength", "dexterity", "intellect"].forEach(s => modifyStat(s, -1, "dungeon"));
     saveState();
     setTimeout(() => { loadEnemy(); }, 3000);
@@ -507,6 +511,8 @@ window.onload = function() {
     state.tutorialSeen = true;
     saveState();
     document.getElementById("tutorialModal").classList.add("hidden");
+    updateHeroUI("math");
+    updateHeroUI("german");
   };
 
   document.getElementById("modeSelect").onchange = function(e) {
@@ -563,14 +569,26 @@ window.onload = function() {
 
   document.getElementById("settingsBtn").onclick = () => document.getElementById("settingsModal").classList.remove("hidden");
   document.getElementById("closeSettings").onclick = () => document.getElementById("settingsModal").classList.add("hidden");
+  
   document.getElementById("howToBtn").onclick = () => {
     document.getElementById("settingsModal").classList.add("hidden");
     document.getElementById("tutorialModal").classList.remove("hidden");
   };
+  
   document.getElementById("resetBtn").onclick = () => {
     if (confirm("Reset ALL progress? This cannot be undone.")) {
       localStorage.removeItem(STORAGE_KEY);
       location.reload();
+    }
+  };
+
+  document.getElementById("renameBtn").onclick = () => {
+    const newName = prompt("Enter a new name for your Hero:", state.hero.name);
+    if (newName && newName.trim() !== "") {
+      state.hero.name = newName.trim().substring(0, 15);
+      saveState();
+      updateHeroUI("math");
+      updateHeroUI("german");
     }
   };
   
