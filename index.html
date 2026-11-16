@@ -3,30 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#1a1a24">
   <title>The Forge</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-  <!-- TUTORIAL MODAL (First Launch) -->
-  <div id="tutorialModal" class="modal">
+  <!-- TUTORIAL / RENAME MODAL -->
+  <div id="tutorialModal" class="modal hidden">
     <div class="modal-content tutorial">
-      <h1>⚔️ WELCOME TO THE FORGE ⚔️</h1>
+      <h1>⚔️ THE FORGE ⚔️</h1>
       <p>You are a hero in training. Your power is measured by three stats:</p>
       <ul style="list-style:none; padding:0; font-size:16px; line-height:1.8;">
         <li>💪 <b>STRENGTH</b> — trained by German</li>
         <li>🎯 <b>DEXTERITY</b> — trained by German</li>
         <li>🧠 <b>INTELLECT</b> — trained by Math</li>
       </ul>
-      <p style="margin-top:16px;"><b>The HIGHER the number, the STRONGER you are.</b><br>Start: Level 1 → Goal: Level 50 (Perfect Hero)</p>
+      <p style="margin-top:16px;"><b>The HIGHER the number, the STRONGER you are.</b><br>Start: Level 1 → Goal: Level 50</p>
       <p>Answer correctly to increase your stats. Answer wrong and your stats might drop.</p>
-      <div style="margin: 16px 0;">
-        <label style="font-size:14px; font-weight:bold;">Name your Hero:</label><br>
+      
+      <div style="margin: 16px 0; padding-top: 16px; border-top: 1px solid #444;">
+        <label style="font-size:14px; font-weight:bold; color:#d4af37;">Hero Name:</label><br>
         <input type="text" id="heroNameInput" maxlength="15" style="text-align:center; margin-top:8px; font-size:18px;" placeholder="Sir Bumble">
       </div>
-      <button id="startTutorialBtn" style="background:#d4af37; color:#1a1a24; border:none; font-weight:bold;">START TRAINING</button>
+      
+      <button id="startTutorialBtn" style="background:#d4af37; color:#1a1a24; border:none; font-weight:bold;">SAVE & START</button>
+      <button id="closeTutorialBtn" style="background:#2d2d3d; color:#e5e5e5; border: 1px solid #444; margin-top: 8px; display:none;">CLOSE</button>
     </div>
   </div>
 
@@ -47,6 +50,7 @@
     <!-- ================= MATH MODE ================= -->
     <section id="mathPanel" class="panel active">
       <div class="hero-container">
+        <div id="mathHeroName" class="hero-name">Hero</div>
         <div class="pixel-hero" id="mathHeroSprite"></div>
         <div class="hero-dice">
           <span>💪 <b id="mathHeroStr">1</b></span>
@@ -72,6 +76,7 @@
     <!-- ================= GERMAN MODE ================= -->
     <section id="germanPanel" class="panel">
       <div class="hero-container">
+        <div id="germanHeroName" class="hero-name">Hero</div>
         <div class="pixel-hero" id="germanHeroSprite"></div>
         <div class="stat-selector">
           <label><input type="radio" name="statSelect" value="strength" checked> 💪 STR</label>
@@ -79,9 +84,9 @@
           <label><input type="radio" name="statSelect" value="intellect"> 🧠 INT</label>
         </div>
         <div class="hero-dice">
-          <span>💪 <b id="germanHeroStr">d20</b></span>
-          <span>🎯 <b id="germanHeroDex">d20</b></span>
-          <span>🧠 <b id="germanHeroInt">d20</b></span>
+          <span>💪 <b id="germanHeroStr">1</b></span>
+          <span>🎯 <b id="germanHeroDex">1</b></span>
+          <span>🧠 <b id="germanHeroInt">1</b></span>
         </div>
         <div class="dice-roll-text" id="germanRollText"></div>
       </div>
@@ -100,44 +105,33 @@
 
     <!-- ================= DUNGEON MODE ================= -->
     <section id="dungeonPanel" class="panel">
-      
-            <!-- Locked State -->
       <div id="dungeonLocked" style="text-align:center; padding: 40px 20px;">
-        <h2 style="margin-bottom: 16px;">⚔️ THE DUNGEON IS LOCKED</h2>
+        <h2 style="margin-bottom: 16px; color: #d4af37;">⚔️ THE DUNGEON IS LOCKED</h2>
         <p style="margin-bottom: 24px; font-size: 16px; line-height: 1.6;">
           To enter, you need:<br><br>
           <span id="reqMath">Math Level 2 (you have: 1)</span><br>
           <span id="reqGerman">German Level 2 (you have: 1)</span><br>
-          <span id="reqStats">All stats at d12 or better</span>
+          <span id="reqStats">All stats at Level 5 or better</span>
         </p>
         <p style="font-weight: bold; color: #888; margin-bottom: 24px;">Keep training! Come back when you're ready.</p>
-        
-        <!-- NEW BUTTON -->
-        <button id="returnToTrainingBtn" style="background:#58cc02; color:white; border:none; padding:12px 24px; font-size:16px; border-radius:8px;">RETURN TO TRAINING</button>
+        <button id="returnToTrainingBtn" style="background:#d4af37; color:#1a1a24; border:none; padding:12px 24px; font-size:16px; border-radius:8px; font-weight:bold;">RETURN TO TRAINING</button>
       </div>
 
-      <!-- Combat Arena (Hidden until unlocked) -->
       <div id="dungeonArena" class="hidden">
         <div class="arena">
           <div class="fighter">
             <div class="pixel-hero" id="battleHero"></div>
             <div class="health-bar"><div id="heroHpFill" class="hp-fill" style="width:100%"></div></div>
-            <div id="heroHpText" style="font-size:12px; font-weight:bold;">50/50</div>
+            <div id="heroHpText" style="font-size:12px; font-weight:bold; color: #e5e5e5;">100/100</div>
           </div>
-          
           <div class="vs">VS</div>
-          
           <div class="fighter">
             <div class="pixel-enemy" id="battleEnemy"></div>
             <div class="health-bar"><div id="enemyHpFill" class="hp-fill enemy-hp" style="width:100%"></div></div>
-            <div id="enemyHpText" style="font-size:12px; font-weight:bold;">20/20</div>
+            <div id="enemyHpText" style="font-size:12px; font-weight:bold; color: #e5e5e5;">30/30</div>
           </div>
         </div>
-
-        <div id="combatLog" class="combat-log">
-          A Giant Rat blocks your path!
-        </div>
-
+        <div id="combatLog" class="combat-log">A Giant Rat blocks your path!</div>
         <div class="combat-actions">
           <button class="action-btn" onclick="startCombatTurn('attack')">⚔️ Attack (STR)</button>
           <button class="action-btn" onclick="startCombatTurn('defend')">🛡️ Defend (DEX)</button>
@@ -150,22 +144,23 @@
   <!-- COMBAT QUESTION POPUP -->
   <div id="combatModal" class="modal hidden">
     <div class="modal-content">
-      <h3 id="combatModalTitle" style="margin-bottom: 16px;">Answer to Attack!</h3>
+      <h3 id="combatModalTitle" style="margin-bottom: 16px; color: #d4af37;">Answer to Attack!</h3>
       <div id="combatQuestionText" class="question" style="font-size:20px; padding:16px; margin-bottom:16px;">Loading...</div>
       <div id="combatOptions"></div>
       <input id="combatInput" type="number" placeholder="Answer" style="display:none; margin-bottom:12px;">
-      <button id="combatSubmit" style="display:none; background:#58cc02; color:white;">Submit</button>
+      <button id="combatSubmit" style="display:none; background:#d4af37; color:#1a1a24; border:none;">Submit</button>
     </div>
   </div>
 
-   <!-- SETTINGS MODAL -->
+  <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="modal hidden">
     <div class="modal-content">
       <h2>Settings</h2>
       <label><input type="checkbox" id="discreetToggle"> Discreet mode</label>
       <label><input type="checkbox" id="soundToggle" checked> Sound effects</label>
       <label><input type="checkbox" id="vibrationToggle" checked> Vibration</label>
-      <button id="howToBtn" style="background:#2d2d3d; color:#e5e5e5; border: 1px solid #444;">How to Play</button>
+      
+      <button id="howToBtn" style="background:#2d2d3d; color:#e5e5e5; border: 1px solid #444;">How to Play / Rename Hero</button>
       <button id="resetBtn" class="danger">Reset all progress</button>
       <button id="closeSettings" style="background:#d4af37; color:#1a1a24; border:none; font-weight:bold;">Close</button>
     </div>
