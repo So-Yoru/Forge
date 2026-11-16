@@ -1,4 +1,4 @@
-const STORAGE_KEY = "forge_state_v7"; // New save version
+const STORAGE_KEY = "forge_state_v8";
 
 const defaultState = {
   math: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
@@ -92,7 +92,6 @@ function modifyStat(statKey, amount, mode) {
 }
 
 function updateHeroUI(mode) {
-  // Update the name on both screens
   document.getElementById("mathHeroName").textContent = state.hero.name;
   document.getElementById("germanHeroName").textContent = state.hero.name;
   
@@ -502,15 +501,36 @@ function resolveCombat(isCorrect) {
 window.onload = function() {
   loadState();
   
-  if (!state.tutorialSeen) document.getElementById("tutorialModal").classList.remove("hidden");
-  else document.getElementById("tutorialModal").classList.add("hidden");
+  const tutorialModal = document.getElementById("tutorialModal");
+  const startBtn = document.getElementById("startTutorialBtn");
+  const closeBtn = document.getElementById("closeTutorialBtn");
+  const nameInput = document.getElementById("heroNameInput");
 
-  document.getElementById("startTutorialBtn").onclick = () => {
-    const name = document.getElementById("heroNameInput").value || "Sir Bumble";
+  // Handle First Time Playing
+  if (!state.tutorialSeen) {
+    tutorialModal.classList.remove("hidden");
+    startBtn.style.display = "block";
+    closeBtn.style.display = "none";
+    nameInput.value = state.hero.name;
+  }
+
+  // Save Name & Start
+  startBtn.onclick = () => {
+    const name = nameInput.value || "Sir Bumble";
     state.hero.name = name;
     state.tutorialSeen = true;
     saveState();
-    document.getElementById("tutorialModal").classList.add("hidden");
+    tutorialModal.classList.add("hidden");
+    updateHeroUI("math");
+    updateHeroUI("german");
+  };
+
+  // Close Tutorial (if opened from settings)
+  closeBtn.onclick = () => {
+    const name = nameInput.value || state.hero.name;
+    state.hero.name = name;
+    saveState();
+    tutorialModal.classList.add("hidden");
     updateHeroUI("math");
     updateHeroUI("german");
   };
@@ -572,23 +592,17 @@ window.onload = function() {
   
   document.getElementById("howToBtn").onclick = () => {
     document.getElementById("settingsModal").classList.add("hidden");
-    document.getElementById("tutorialModal").classList.remove("hidden");
+    tutorialModal.classList.remove("hidden");
+    
+    startBtn.style.display = "none";
+    closeBtn.style.display = "block";
+    nameInput.value = state.hero.name;
   };
   
   document.getElementById("resetBtn").onclick = () => {
     if (confirm("Reset ALL progress? This cannot be undone.")) {
       localStorage.removeItem(STORAGE_KEY);
       location.reload();
-    }
-  };
-
-  document.getElementById("renameBtn").onclick = () => {
-    const newName = prompt("Enter a new name for your Hero:", state.hero.name);
-    if (newName && newName.trim() !== "") {
-      state.hero.name = newName.trim().substring(0, 15);
-      saveState();
-      updateHeroUI("math");
-      updateHeroUI("german");
     }
   };
   
@@ -616,7 +630,7 @@ window.onload = function() {
   newMathQuestion(); newGermanQuestion();
 };
 
-// Register Service Worker
+// Register Service Worker for offline support
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW failed:", err));
