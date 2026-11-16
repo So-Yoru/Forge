@@ -14,19 +14,19 @@
   <div id="tutorialModal" class="modal">
     <div class="modal-content tutorial">
       <h1>⚔️ WELCOME TO THE FORGE ⚔️</h1>
-      <p>You are a hero in training. Your power is stored in three dice:</p>
+      <p>You are a hero in training. Your power is measured by three stats:</p>
       <ul style="list-style:none; padding:0; font-size:16px; line-height:1.8;">
         <li>💪 <b>STRENGTH</b> — trained by German</li>
         <li>🎯 <b>DEXTERITY</b> — trained by German</li>
         <li>🧠 <b>INTELLECT</b> — trained by Math</li>
       </ul>
-      <p style="margin-top:16px;"><b>The SMALLER the die, the STRONGER you are.</b><br>Start: d20 (weak) → Goal: d4 (master)</p>
-      <p>Answer correctly to roll and upgrade. Answer wrong and your die grows.</p>
+      <p style="margin-top:16px;"><b>The HIGHER the number, the STRONGER you are.</b><br>Start: Level 1 → Goal: Level 50 (Perfect Hero)</p>
+      <p>Answer correctly to increase your stats. Answer wrong and your stats might drop.</p>
       <div style="margin: 16px 0;">
         <label style="font-size:14px; font-weight:bold;">Name your Hero:</label><br>
         <input type="text" id="heroNameInput" maxlength="15" style="text-align:center; margin-top:8px; font-size:18px;" placeholder="Sir Bumble">
       </div>
-      <button id="startTutorialBtn" style="background:#58cc02; color:white; border:none;">START TRAINING</button>
+      <button id="startTutorialBtn" style="background:#d4af37; color:#1a1a24; border:none; font-weight:bold;">START TRAINING</button>
     </div>
   </div>
 
@@ -158,16 +158,16 @@
     </div>
   </div>
 
-  <!-- SETTINGS MODAL -->
+   <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="modal hidden">
     <div class="modal-content">
       <h2>Settings</h2>
       <label><input type="checkbox" id="discreetToggle"> Discreet mode</label>
       <label><input type="checkbox" id="soundToggle" checked> Sound effects</label>
       <label><input type="checkbox" id="vibrationToggle" checked> Vibration</label>
-      <button id="howToBtn" style="background:#f0f0f0; color:#333;">How to Play</button>
+      <button id="howToBtn" style="background:#2d2d3d; color:#e5e5e5; border: 1px solid #444;">How to Play</button>
       <button id="resetBtn" class="danger">Reset all progress</button>
-      <button id="closeSettings">Close</button>
+      <button id="closeSettings" style="background:#d4af37; color:#1a1a24; border:none; font-weight:bold;">Close</button>
     </div>
   </div>
 
