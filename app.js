@@ -12,14 +12,27 @@ const defaultState = {
 };
 
 let state = JSON.parse(JSON.stringify(defaultState));
-
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = { ...defaultState, ...JSON.parse(raw) };
+    // 1. Try to load the permanent save
+    let raw = localStorage.getItem("forge_save_data");
+    
+    // 2. If it doesn't exist, check for old versions (v9, v8, etc.)
+    if (!raw) {
+      for (let i = 9; i >= 1; i--) {
+        raw = localStorage.getItem(`forge_state_v${i}`);
+        if (raw) break; // Found an old save! Stop looking.
+      }
+    }
+    
+    // 3. If we found a save (new or old), load it
+    if (raw) {
+      state = { ...defaultState, ...JSON.parse(raw) };
+      // Save it to the new permanent key immediately so we don't have to look again
+      saveState(); 
+    }
   } catch (e) { console.log("Storage error", e); }
 }
-
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
