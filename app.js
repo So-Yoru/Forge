@@ -1,4 +1,4 @@
-const STORAGE_KEY = "forge_state_v8";
+const STORAGE_KEY = "forge_state_v9"; // Bumped version
 
 const defaultState = {
   math: { level: 1, xp: 0, streak: 0, wrongStreak: 0 },
@@ -190,6 +190,10 @@ function newMathQuestion() {
   qEl.textContent = `${a} ${op} ${b} = ?`;
   document.getElementById("mathAnswer").value = "";
   document.getElementById("mathFeedback").textContent = "";
+  
+  // Ensure inputs are unlocked for the new question
+  document.getElementById("mathSubmit").disabled = false;
+  document.getElementById("mathAnswer").disabled = false;
 }
 
 function updateMathUI() {
@@ -408,17 +412,22 @@ function startCombatTurn(action) {
     });
     optsDiv.classList.remove("hidden");
   } 
-    else if (action === "cast") {
+  else if (action === "cast") {
     title.textContent = "Cast Spell! (Math)";
     const a = rand(5, 20), b = rand(2, 10);
     qText.textContent = `${a} × ${b} = ?`;
     const correct = a * b;
-    input.style.display = "block"; input.value = ""; submitBtn.style.display = "block";
     
-    // CHANGE THIS LINE:
+    input.style.display = "block"; 
+    input.value = ""; 
+    input.disabled = false; // FIX: Re-enable input
+    
+    submitBtn.style.display = "block";
+    submitBtn.disabled = false; // FIX: Re-enable button
+    
     submitBtn.onclick = () => {
-      submitBtn.disabled = true; // Lock the button
-      input.disabled = true;     // Lock the input
+      submitBtn.disabled = true; 
+      input.disabled = true;     
       resolveCombat(parseInt(input.value) === correct);
     };
   }
@@ -512,7 +521,6 @@ window.onload = function() {
   const closeBtn = document.getElementById("closeTutorialBtn");
   const nameInput = document.getElementById("heroNameInput");
 
-  // Handle First Time Playing
   if (!state.tutorialSeen) {
     tutorialModal.classList.remove("hidden");
     startBtn.style.display = "block";
@@ -520,7 +528,6 @@ window.onload = function() {
     nameInput.value = state.hero.name;
   }
 
-  // Save Name & Start
   startBtn.onclick = () => {
     const name = nameInput.value || "Sir Bumble";
     state.hero.name = name;
@@ -531,7 +538,6 @@ window.onload = function() {
     updateHeroUI("german");
   };
 
-  // Close Tutorial (if opened from settings)
   closeBtn.onclick = () => {
     const name = nameInput.value || state.hero.name;
     state.hero.name = name;
@@ -569,12 +575,11 @@ window.onload = function() {
     newMathQuestion();
   };
 
-   document.getElementById("mathSubmit").onclick = function() {
+  document.getElementById("mathSubmit").onclick = function() {
     const input = document.getElementById("mathAnswer");
     const val = parseInt(input.value, 10);
     if (isNaN(val) || !currentMath) return;
     
-    // --- LOCK THE INPUTS TO PREVENT SPAMMING ---
     const btn = document.getElementById("mathSubmit");
     btn.disabled = true;
     input.disabled = true;
@@ -598,7 +603,6 @@ window.onload = function() {
     
     saveState(); updateMathUI();
     
-    // --- UNLOCK AND LOAD NEXT QUESTION AFTER DELAY ---
     setTimeout(() => {
       btn.disabled = false;
       input.disabled = false;
@@ -653,7 +657,7 @@ window.onload = function() {
   newMathQuestion(); newGermanQuestion();
 };
 
-// Register Service Worker for offline support
+// Register Service Worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW failed:", err));
